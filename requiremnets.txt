@@ -1,0 +1,18 @@
+#Django Framework
+django~=5.0
+
+#For Gemini API
+google-generativeai
+python-dotenv
+
+#For Markdown to HTML conversion
+markdown
+
+#For serving static files in production with Gunicorn
+whitenoise
+
+#WSGI HTTP Server for production
+gunicorn
+
+#(Optional) For PDF Generation
+#weasyprint

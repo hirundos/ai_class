@@ -1,0 +1,269 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <div class="page-banner"></div>
+    <title>AI 교실 자료 생성기</title>
+    <style>
+        .page-banner {
+            width: 100%;
+            height: 150px; /* 배너 높이 고정 */
+            border-radius: 12px 12px 0 0;
+            background: url("{% static 'images/class_banner.jpg' %}") center center no-repeat;
+            background-size: 100% 100%; /* 이미지가 배너 영역에 맞게 늘어나도록 */
+            margin-bottom: 1.5rem;
+        }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 960px; margin: 2rem auto; padding: 0 1rem; background-color: #f8f9fa; }
+        h1, h2 { color: #2c3e50; }
+        .container { background: #fff; padding: 2rem; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .form-group { margin-bottom: 1.5rem; }
+        label { display: block; font-weight: bold; margin-bottom: 0.5rem; color: #34495e; }
+        select, input[type="text"], button { width: 100%; padding: 0.8rem; border-radius: 4px; border: 1px solid #ccc; font-size: 1rem; box-sizing: border-box; }
+        button { background-color: #6546FF; color: white; border: none; cursor: pointer; font-weight: bold; transition: background-color 0.3s; margin-top: 1rem;}
+        button:hover { background-color: rgba(175, 175, 175, 0.53)}
+        button:disabled { background-color: #bdc3c7; cursor: not-allowed; }
+        .result-container, .prompt-preview-container { margin-top: 2rem; padding: 1.5rem; border: 1px solid #e0e0e0; border-radius: 8px; background-color: #fdfdfd; }
+        .prompt-preview-container pre { white-space: pre-wrap; word-wrap: break-word; font-family: 'Courier New', Courier, monospace; background: #ecf0f1; padding: 1rem; border-radius: 4px; }
+        .loading-indicator { text-align: center; padding: 1rem; font-style: italic; color: #7f8c8d; }
+        .result-actions { margin-top: 1rem; }
+        .result-actions a { display: inline-block; text-decoration: none; background-color: #2ecc71; color: white; padding: 0.7rem 1.2rem; border-radius: 4px; margin-right: 0.5rem; border: none; font-size: 0.9rem; cursor: pointer; }
+        .result-actions a:hover { background-color: #27ae60; }
+        .error-message { color: #e74c3c; font-weight: bold; }
+
+        /* Tab Styles */
+        .tab-container {
+             display: flex; border-bottom: 2px solid #dee2e6; margin-bottom: 1.5rem; 
+            }
+        .tab-btn { 
+            padding: 0.8rem 1.5rem; 
+            cursor: pointer; 
+            border: none; 
+            background-color: transparent; 
+            font-size: 1.1rem; 
+            color: #495057; 
+            border-bottom: 3px solid transparent; 
+            margin-bottom: -2px; 
+            transition: all 0.2s ease;
+            font-weight: 500;
+        }
+        .tab-content { 
+            display: none; 
+        }
+
+        /* 활성 탭만 보이게 */
+        .tab-content.active { 
+            display: block; 
+        }
+        .tab-btn.active {
+             color: #6546FF; border-bottom-color: #6546FF; font-weight: bold; 
+            }
+        /* 안전교육 탭 */
+        .tab-btn[data-tab="safety"].active { 
+            color: #3498db; 
+            border-bottom-color: #3498db; 
+            font-weight: bold; 
+        }
+
+        /* 현장체험학습 탭 */
+        .tab-btn[data-tab="field-trip"].active { 
+            color: #27ae60; 
+            border-bottom-color: #27ae60; 
+            font-weight: bold; 
+        }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>AI 교실 자료 생성기</h1>
+
+        <div class="tab-container">
+            <button class="tab-btn active" data-tab="safety">안전교육</button>
+            <button class="tab-btn" data-tab="field-trip">현장체험학습</button>
+        </div>
+
+        <!-- 안전교육 탭 -->
+        <div id="safety-tab" class="tab-content active">
+            <p>학교급, 산출물 유형, 테마를 선택하여 안전교육 자료를 생성하세요.</p>
+            <form id="safety-form">
+                <div class="form-group">
+                    <label for="school-level">학교급</label>
+                    <select id="school-level" name="school_level">
+                        <option value="elementary">초등</option>
+                        <option value="middle">중등</option>
+                        <option value="high">고등</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="output-type">산출물</label>
+                    <select id="output-type" name="output_type">
+                        <option value="notice">가정통신문</option>
+                        <option value="pdf">교육자료 (웹 인쇄)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="theme">테마</label>
+                    <select id="theme" name="theme">
+                        <option value="fire_safety">화재 안전</option>
+                        <option value="traffic_safety">교통 안전</option>
+                        <option value="food_safety">식중독 예방</option>
+                    </select>
+                </div>
+                <button type="submit" id="safety-generate-btn">안전교육 자료 생성</button>
+            </form>
+            <div id="safety-result-container" class="result-container" style="display: none;">
+                <h2>생성 결과</h2>
+                <div id="safety-result-content"></div>
+            </div>
+        </div>
+
+        <!-- 현장체험학습 탭 -->
+        <div id="field-trip-tab" class="tab-content">
+            <p>학년과 체험학습 장소를 입력하여 맞춤형 교육 자료를 생성하세요.</p>
+            <form id="field-trip-form">
+                <div class="form-group">
+                    <label for="grade-level">학년</label>
+                    <select id="grade-level" name="grade_level">
+                        <option value="1">1학년</option>
+                        <option value="2">2학년</option>
+                        <option value="3">3학년</option>
+                        <option value="4">4학년</option>
+                        <option value="5">5학년</option>
+                        <option value="6">6학년</option>
+                        <option value="7">7학년 (중1)</option>
+                        <option value="8">8학년 (중2)</option>
+                        <option value="9">9학년 (중3)</option>
+                        <option value="10">10학년 (고1)</option>
+                        <option value="11">11학년 (고2)</option>
+                        <option value="12">12학년 (고3)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="location">체험학습 장소</label>
+                    <input type="text" id="location" name="location" placeholder="예: 국립중앙박물관" required>
+                </div>
+                <button type="submit" id="field-trip-generate-btn">현장체험학습 자료 생성</button>
+            </form>
+            <div id="field-trip-result-container" class="result-container" style="display: none;">
+                <h2>생성 결과</h2>
+                <div id="field-trip-result-content"></div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+
+        // Tab UI Logic
+        const tabBtns = document.querySelectorAll('.tab-btn');
+        const tabContents = document.querySelectorAll('.tab-content');
+        tabBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                tabBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                tabContents.forEach(c => c.classList.remove('active'));
+                document.getElementById(`${btn.dataset.tab}-tab`).classList.add('active');
+            });
+        });
+
+        // --- 안전교육 자료 생성 로직 ---
+        const safetyForm = document.getElementById('safety-form');
+        const safetyGenerateBtn = document.getElementById('safety-generate-btn');
+        const safetyResultContainer = document.getElementById('safety-result-container');
+        const safetyResultContent = document.getElementById('safety-result-content');
+
+        safetyForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            safetyGenerateBtn.disabled = true;
+            safetyGenerateBtn.textContent = '생성 중...';
+            safetyResultContainer.style.display = 'block';
+            safetyResultContent.innerHTML = '<div class="loading-indicator">AI가 콘텐츠를 생성하고 있습니다. 잠시만 기다려주세요...</div>';
+
+            const formData = new FormData(safetyForm);
+            const payload = {
+                school_level: formData.get('school_level'),
+                output_type: formData.get('output_type'),
+                theme: formData.get('theme'),
+            };
+
+            try {
+                const response = await fetch('/api/generate/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.error || '알 수 없는 오류');
+                renderSafetyResult(data);
+            } catch (error) {
+                safetyResultContent.innerHTML = `<p class="error-message">생성 실패: ${error.message}</p>`;
+            } finally {
+                safetyGenerateBtn.disabled = false;
+                safetyGenerateBtn.textContent = '안전교육 자료 생성';
+            }
+        });
+        
+        function renderSafetyResult(data) {
+            let html = `<h3>결과 미리보기</h3>
+                        <div style="border:1px solid #ddd; padding:1em; border-radius:4px; max-height: 400px; overflow-y: auto;">
+                           ${data.result_text}
+                        </div>`;
+            const actionText = data.output_type === 'notice' ? '가정통신문 인쇄 페이지 열기' : '교육자료 인쇄 페이지 열기';
+            html += `<div class="result-actions">
+                        <a href="/result/print/${data.id}/" target="_blank">${actionText}</a>
+                     </div>`;
+            safetyResultContent.innerHTML = html;
+        }
+
+        // --- 현장체험학습 자료 생성 로직 ---
+        const fieldTripForm = document.getElementById('field-trip-form');
+        const fieldTripGenerateBtn = document.getElementById('field-trip-generate-btn');
+        const fieldTripResultContainer = document.getElementById('field-trip-result-container');
+        const fieldTripResultContent = document.getElementById('field-trip-result-content');
+
+        fieldTripForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            fieldTripGenerateBtn.disabled = true;
+            fieldTripGenerateBtn.textContent = '생성 중...';
+            fieldTripResultContainer.style.display = 'block';
+            fieldTripResultContent.innerHTML = '<div class="loading-indicator">AI가 맞춤 자료를 생성하고 있습니다. 잠시만 기다려주세요...</div>';
+            
+            const formData = new FormData(fieldTripForm);
+            const payload = {
+                grade: formData.get('grade_level'),
+                location: formData.get('location'),
+            };
+
+            try {
+                const response = await fetch('/api/generate/field_trip/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.error || '알 수 없는 오류');
+                renderFieldTripResult(data);
+            } catch (error) {
+                fieldTripResultContent.innerHTML = `<p class="error-message">생성 실패: ${error.message}</p>`;
+            } finally {
+                fieldTripGenerateBtn.disabled = false;
+                fieldTripGenerateBtn.textContent = '현장체험학습 자료 생성';
+            }
+        });
+
+        function renderFieldTripResult(data) {
+             let html = `<h3>결과 미리보기</h3>
+                        <div style="border:1px solid #ddd; padding:1em; border-radius:4px; max-height: 400px; overflow-y: auto;">
+                           ${data.result_text}
+                        </div>`;
+            html += `<div class="result-actions">
+                        <a href="/result/print/${data.id}/" target="_blank">전체 내용 인쇄/저장</a>
+                     </div>`;
+            fieldTripResultContent.innerHTML = html;
+        }
+
+    </script>
+</body>
+</html>
+
