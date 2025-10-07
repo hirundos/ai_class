@@ -22,4 +22,5 @@ COPY . .
 # 7. Gunicorn 실행
 # 프로젝트 이름이 project_settings이므로 wsgi 모듈 경로는 project_settings.wsgi 입니다.
 # 8000번 포트를 외부에 노출합니다.
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "project_settings.wsgi:application"]
+CMD ["gunicorn", "--bind", ":8080", "ai_back_class.wsgi:application"]
+EXPOSE 8080

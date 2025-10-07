@@ -5,6 +5,8 @@ django~=5.0
 google-generativeai
 python-dotenv
 
+django-environ
+
 #For Markdown to HTML conversion
 markdown
 

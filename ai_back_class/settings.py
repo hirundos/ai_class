@@ -26,7 +26,7 @@ SECRET_KEY = 'django-insecure-u%n=vnkpr*zmwl3#r#b%^gh69ln_^9)x(#6*5-(()621ci-@=8
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -57,7 +57,7 @@ TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [
-            BASE_DIR / 'ai_app' / 'templates'   # ✅ 이 줄 추가
+            BASE_DIR / 'ai_app' / 'templates'  
         ],
         'APP_DIRS': True,
         'OPTIONS': {
