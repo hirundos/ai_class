@@ -1,14 +1,11 @@
 # gemini_service.py
 import os
 import google.generativeai as genai
-import markdown # 응답을 HTML로 변환하기 위해 추가
+import markdown
 
-# 중요: 이 키는 절대로 소스 코드에 하드코딩하지 마세요.
-# 환경 변수, Docker secrets, 또는 클라우드 비밀 관리 서비스를 사용하세요.
 os.environ.get('GEMINI_API_KEY')
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
 
-# 로컬 개발 시, 실제 API 키가 없다면 아래 주석을 풀고 더미 키를 사용하세요.
 #if not GEMINI_API_KEY:
 #    GEMINI_API_KEY = "YOUR_DUMMY_API_KEY_FOR_LOCAL_TEST"
 
@@ -77,9 +74,6 @@ def call_gemini(prompt, timeout=60):
             """
             return markdown.markdown(mock_md_response)
 
-
-    # --- 실제 Gemini API 호출 로직 ---
-    # 실제 운영 시에는 이 로직이 실행됩니다.
     try:
         model = genai.GenerativeModel('gemini-2.0-flash')
         response = model.generate_content(prompt)
@@ -87,7 +81,5 @@ def call_gemini(prompt, timeout=60):
         return response.text
 
     except Exception as e:
-        # 실제 환경에서는 더 정교한 예외 처리 및 로깅이 필요합니다.
-        # (예: 타임아웃, API 할당량 초과, 인증 오류 등)
         print(f"An error occurred while calling Gemini API: {e}")
-        raise  # 예외를 다시 발생시켜 상위 핸들러가 처리하도록 함
+        raise  

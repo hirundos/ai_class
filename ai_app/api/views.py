@@ -12,7 +12,7 @@ from ..models import GenerationRequest
 @require_http_methods(["GET"])
 def get_static_data(request, theme):
     """
-    선택된 테마에 해당하는 static JSON 파일을 반환합니다. (기존 기능)
+    선택된 테마에 해당하는 static JSON 파일을 반환합니다.
     """
     allowed_themes = ['fire_safety', 'general_safety']
     if theme not in allowed_themes:
@@ -59,14 +59,7 @@ def generate_content(request):
         try:
             # 1. Gemini를 호출해 [IMAGE:...] 태그가 포함된 원본 텍스트를 받습니다.
             response_text_with_tags = gemini_service.call_gemini(prompt)
-
-            # ✨ 2. 이미지 변환 로직을 바로 실행하여 최종 HTML을 생성합니다.
-            final_html_content = content_processor.process_content_for_images(response_text_with_tags)
-
-            # 3. 변환이 완료된 최종 HTML을 DB에 저장합니다.
-            req_instance.response_text = final_html_content
-            req_instance.status = 'done'
-            req_instance.save()
+            final_html_content = content_processor.process_content_for_images(response_text_with_tags).
 
             return JsonResponse({
                 'id': req_instance.id,
@@ -103,19 +96,18 @@ def generate_field_trip_content(request):
 
         prompt = prompt_builder.build_field_trip_prompt(grade, location)
         
-        # 학년을 학교급으로 변환하여 저장 (DB 정리를 위해)
         try:
             grade_num = int(grade)
             if 1 <= grade_num <= 6: school_level = 'elementary'
             elif 7 <= grade_num <= 9: school_level = 'middle'
             else: school_level = 'high'
         except (ValueError, TypeError):
-            school_level = None # 학년이 숫자가 아닐 경우
+            school_level = None
 
         req_instance = GenerationRequest.objects.create(
             school_level=school_level,
             output_type='field_trip',
-            theme=location, # theme 필드에 장소명을 저장
+            theme=location, 
             prompt=prompt,
             status='pending'
         )
@@ -123,14 +115,7 @@ def generate_field_trip_content(request):
         try:
             # 1. Gemini를 호출해 [IMAGE:...] 태그가 포함된 원본 텍스트를 받습니다.
             response_text_with_tags = gemini_service.call_gemini(prompt)
-
-            # ✨ 2. 이미지 변환 로직을 바로 실행하여 최종 HTML을 생성합니다.
             final_html_content = content_processor.process_content_for_images(response_text_with_tags)
-
-            # 3. 변환이 완료된 최종 HTML을 DB에 저장합니다.
-            req_instance.response_text = final_html_content
-            req_instance.status = 'done'
-            req_instance.save()
 
             return JsonResponse({
                 'id': req_instance.id,
@@ -152,9 +137,6 @@ def generate_field_trip_content(request):
 
 @require_http_methods(["GET"])
 def get_generation_status(request, request_id):
-    """
-    (비동기 처리 시 사용) 생성 요청의 현재 상태를 반환합니다. (기존 기능)
-    """
     try:
         req_instance = GenerationRequest.objects.get(pk=request_id)
         response_data = {

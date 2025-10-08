@@ -1,6 +1,6 @@
 from django.shortcuts import render, get_object_or_404
 from .models import GenerationRequest
-from .services import content_processor # 👈 새로 만든 서비스 임포트
+from .services import content_processor 
 
 def index(request):
     """

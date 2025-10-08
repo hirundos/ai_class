@@ -10,17 +10,11 @@ import base64
 # API 키 설정
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
 
-# genai.configure 대신 Client 객체 사용
-# API 키가 None이거나 비어있을 경우를 대비한 예외 처리
 client = None
 if GEMINI_API_KEY and GEMINI_API_KEY != "YOUR_DUMMY_API_KEY_FOR_LOCAL_TEST":
     client = genai.Client(api_key=GEMINI_API_KEY)
 
 def generate_image_from_prompt(prompt_text: str) -> str:
-    """
-    주어진 텍스트 프롬프트로 이미지를 생성하고,
-    HTML <img> 태그에 바로 사용할 수 있는 base64 인코딩된 문자열을 반환합니다.
-    """
     if not client:
         print(f"--- MOCK IMAGE generation for prompt: {prompt_text} ---")
         grey_pixel_base64 = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mOM+wAAAgAB/Q33aQAAAABJRU5ErkJggg=="
@@ -29,7 +23,6 @@ def generate_image_from_prompt(prompt_text: str) -> str:
     try:
         print(f"--- API에 전달되는 실제 프롬프트: [{prompt_text}] ---")
 
-        # 공식 문서의 올바른 호출 방식
         response = client.models.generate_content(
             model="gemini-2.0-flash-preview-image-generation",
             contents=[prompt_text],
@@ -45,7 +38,7 @@ def generate_image_from_prompt(prompt_text: str) -> str:
                 image = Image.open(io.BytesIO(image_data))
                 resized_image = image.resize((512, 512))
                 buffer = io.BytesIO()
-                resized_image.save(buffer, format="PNG") # 또는 "JPEG"로 저장하여 파일 크기 줄이기
+                resized_image.save(buffer, format="PNG")
                 resized_image_data = buffer.getvalue()
                 image_base64 = base64.b64encode(resized_image_data).decode('utf-8')
 
