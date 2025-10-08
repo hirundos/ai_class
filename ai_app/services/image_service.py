@@ -3,6 +3,8 @@
 import os
 from google import genai
 from google.genai import types
+from PIL import Image
+import io 
 import base64
 
 # API 키 설정
@@ -40,7 +42,12 @@ def generate_image_from_prompt(prompt_text: str) -> str:
                 print(part.text)
             elif part.inline_data is not None:
                 image_data = part.inline_data.data
-                image_base64 = base64.b64encode(image_data).decode('utf-8')
+                image = Image.open(io.BytesIO(image_data))
+                resized_image = image.resize((512, 512))
+                buffer = io.BytesIO()
+                resized_image.save(buffer, format="PNG") # 또는 "JPEG"로 저장하여 파일 크기 줄이기
+                resized_image_data = buffer.getvalue()
+                image_base64 = base64.b64encode(resized_image_data).decode('utf-8')
 
         return f"data:image/png;base64,{image_base64}"
 
