@@ -32,7 +32,7 @@ const FORMAT_MAP = {
 export function buildPromptPreview(schoolLevel, outputType, theme, safetyData) {
     const role = ROLE_MAP[schoolLevel] || '안전교육 전문가';
     const fmt = FORMAT_MAP[outputType] || FORMAT_MAP['pdf'];
-    const themeKo = theme === "fire_safety" ? "화재 안전" : "일반 생활 안전";
+    const themeKo = theme;
     
     // safetyData를 문자열로 변환하여 프롬프트에 포함
     const dataString = JSON.stringify(safetyData, null, 2);
@@ -51,8 +51,11 @@ export function buildPromptPreview(schoolLevel, outputType, theme, safetyData) {
 
     if (outputType === 'notice') {
         prompt += `- 가정통신문이므로 학부모님의 참여와 협조를 유도하는 문구를 포함해 주세요.\n- 결과물은 다른 설명 없이 바로 가정통신문 내용만 나올 수 있도록, HTML 마크업 형식으로 작성해주세요. (예: <h1>제목</h1><p>내용</p>)\n`;
-    } else { // pdf
-        prompt += `- 학생들이 흥미를 느낄 수 있도록 시각적인 구성을 제안하는 설명을 포함할 수 있습니다. (예: '[이미지: 소화기 사용법 그림]')\n- 결과물은 다른 설명 없이 바로 PDF 내용만 나올 수 있도록, 마크다운 형식으로 작성해주세요.\n`;
+} else { // pdf
+        prompt += `- 글의 내용과 가장 잘 어울리는 지점에 이미지를 삽입해야 합니다.\n`;
+        prompt += `- 이미지를 삽입할 때는 반드시 '[IMAGE: \"상세한 이미지 설명\"]' 형식을 사용해야 합니다.\n`;
+        prompt += "- \"상세한 이미지 설명\"은 생성될 이미지의 장면 묘사(예 사람이 완강기를 사용하여 3층 건물 벽을 내려오는 모습),'단순하고 명확한 일러스트 스타일'이라는 단어로 끝나야 합니다.\n"
+        prompt += `- 결과물은 다른 설명 없이 바로 PDF 내용만 나올 수 있도록, 마크다운 형식으로 작성해주세요.\n`;
     }
     
     prompt += `\n이제 작성을 시작해 주세요.`;

@@ -1,12 +1,13 @@
+#api/views.py
 import json
 import os
 from django.http import JsonResponse, HttpResponseNotFound
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
-
+from ..services import prompt_builder, gemini_service, content_processor
 from ..models import GenerationRequest
-from ..services import prompt_builder, gemini_service
+
 
 @require_http_methods(["GET"])
 def get_static_data(request, theme):
@@ -56,15 +57,21 @@ def generate_content(request):
         )
 
         try:
-            response_text = gemini_service.call_gemini(prompt)
-            req_instance.response_text = response_text
+            # 1. Gemini를 호출해 [IMAGE:...] 태그가 포함된 원본 텍스트를 받습니다.
+            response_text_with_tags = gemini_service.call_gemini(prompt)
+
+            # ✨ 2. 이미지 변환 로직을 바로 실행하여 최종 HTML을 생성합니다.
+            final_html_content = content_processor.process_content_for_images(response_text_with_tags)
+
+            # 3. 변환이 완료된 최종 HTML을 DB에 저장합니다.
+            req_instance.response_text = final_html_content
             req_instance.status = 'done'
             req_instance.save()
 
             return JsonResponse({
                 'id': req_instance.id,
                 'status': 'done',
-                'result_text': response_text,
+                'result_text': final_html_content,
                 'output_type': output_type,
             })
 
@@ -114,15 +121,21 @@ def generate_field_trip_content(request):
         )
 
         try:
-            response_text = gemini_service.call_gemini(prompt)
-            req_instance.response_text = response_text
+            # 1. Gemini를 호출해 [IMAGE:...] 태그가 포함된 원본 텍스트를 받습니다.
+            response_text_with_tags = gemini_service.call_gemini(prompt)
+
+            # ✨ 2. 이미지 변환 로직을 바로 실행하여 최종 HTML을 생성합니다.
+            final_html_content = content_processor.process_content_for_images(response_text_with_tags)
+
+            # 3. 변환이 완료된 최종 HTML을 DB에 저장합니다.
+            req_instance.response_text = final_html_content
             req_instance.status = 'done'
             req_instance.save()
 
             return JsonResponse({
                 'id': req_instance.id,
                 'status': 'done',
-                'result_text': response_text
+                'result_text': final_html_content
             })
 
         except Exception as e:

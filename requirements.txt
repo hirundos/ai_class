@@ -3,6 +3,9 @@ django~=5.0
 
 #For Gemini API
 google-generativeai
+google
+google.genai
+
 python-dotenv
 
 django-environ

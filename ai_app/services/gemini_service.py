@@ -1,3 +1,4 @@
+# gemini_service.py
 import os
 import google.generativeai as genai
 import markdown # 응답을 HTML로 변환하기 위해 추가
