@@ -9,5 +9,5 @@ AI: Google Gemini API
 프론트엔드: Vanilla JavaScript (ESM), HTML, CSS
 배포: Docker, Cloud Run(GCP)
 
-
-
+결과물
+![Image](https://github.com/user-attachments/assets/e41bbbde-2e00-4f43-b9bd-3637e53ac1b5)
